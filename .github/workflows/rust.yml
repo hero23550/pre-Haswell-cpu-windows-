@@ -1,31 +1,39 @@
-build_release:
-  name: Build project in release (Windows pre-2013 CPU)
-  runs-on: windows-latest
-  needs: [build_and_test]
-  strategy:
-    matrix:
-      toolchain:
-        - stable
-  steps:
-    - uses: actions/checkout@v6
+name: Build Pumpkin Windows (pre-2013 CPU)
 
-    - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-    - uses: Swatinem/rust-cache@v2
-    - name: Build Release
-      shell: bash
-      run: |
-        # Set CPU target for your 2012 CPU
-        export RUSTFLAGS="$RUSTFLAGS -C target-cpu=core2"
-        cargo build --verbose --release
-    - name: Prepare artifacts
-      shell: bash
-      run: |
-        mkdir -p dist
-        EXT=".exe"
-        cp "target/release/pumpkin$EXT" "dist/pumpkin-windows$EXT"
-    - name: Export executable
-      uses: actions/upload-artifact@v7
-      with:
-        name: pumpkin-windows
-        compression-level: 9
-        path: dist/pumpkin-*
+on:
+  workflow_dispatch:
+
+jobs:
+  build_release:
+    name: Build project in release (Windows pre-2013 CPU)
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        toolchain:
+          - stable
+    steps:
+      - uses: actions/checkout@v6
+
+      - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build Release
+        shell: bash
+        run: |
+          # Set CPU target for your 2012 CPU
+          export RUSTFLAGS="$RUSTFLAGS -C target-cpu=core2"
+          cargo build --verbose --release
+
+      - name: Prepare artifacts
+        shell: bash
+        run: |
+          mkdir -p dist
+          EXT=".exe"
+          cp "target/release/pumpkin$EXT" "dist/pumpkin-windows$EXT"
+
+      - name: Export executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: pumpkin-windows
+          compression-level: 9
+          path: dist/pumpkin-*
